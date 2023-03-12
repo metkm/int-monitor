@@ -1,6 +1,6 @@
 use std::net::{IpAddr, Ipv4Addr};
 
-use windows::Win32::NetworkManagement::IpHelper::{TCP_TABLE_OWNER_MODULE_CONNECTIONS, MIB_TCPTABLE_OWNER_MODULE, MIB_TCPROW_OWNER_MODULE, TCP_TABLE_CLASS, MIB_TCPROW_OWNER_PID};
+use windows::Win32::NetworkManagement::IpHelper::{TCP_TABLE_OWNER_MODULE_CONNECTIONS, MIB_TCPTABLE_OWNER_MODULE, MIB_TCPROW_OWNER_MODULE, MIB_TCPROW_OWNER_PID};
 
 use super::{tcp::get_tcp_buffer, udp::get_udp_buffer};
 

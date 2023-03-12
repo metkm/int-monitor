@@ -2,7 +2,7 @@ use std::ffi::c_void;
 
 use windows::Win32::{
     NetworkManagement::IpHelper::{
-        GetExtendedTcpTable, TCP_TABLE_OWNER_MODULE_ALL, TCP_TABLE_OWNER_PID_CONNECTIONS, TCP_TABLE_CLASS,
+        GetExtendedTcpTable, TCP_TABLE_CLASS,
     },
     Networking::WinSock::AF_INET,
 };
