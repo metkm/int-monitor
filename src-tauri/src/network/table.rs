@@ -1,6 +1,6 @@
 use std::net::{IpAddr, Ipv4Addr};
 
-use windows::Win32::NetworkManagement::IpHelper::{TCP_TABLE_OWNER_MODULE_CONNECTIONS, MIB_TCPTABLE_OWNER_MODULE, MIB_TCPROW_OWNER_MODULE, MIB_TCPROW_OWNER_PID};
+use windows::Win32::NetworkManagement::IpHelper::{MIB_TCPTABLE_OWNER_MODULE, MIB_TCPROW_OWNER_MODULE, MIB_TCPROW_OWNER_PID, TCP_TABLE_OWNER_PID_ALL, MIB_TCPTABLE_OWNER_PID};
 
 use super::{tcp::get_tcp_buffer, udp::get_udp_buffer};
 
@@ -20,6 +20,22 @@ pub trait TableStructure {
 }
 
 impl TableStructure for MIB_TCPTABLE_OWNER_MODULE {
+    fn get_table(&self) -> Table {
+        let rows = (0..self.dwNumEntries)
+            .map(|i| {
+                let owner = unsafe { &*(self.table.as_ptr().add(i as usize)) };
+                TableRow::from(owner)
+            })
+            .collect::<Vec<TableRow>>();
+
+        Table {
+            row_count: self.dwNumEntries,
+            rows
+        }
+    }
+}
+
+impl TableStructure for MIB_TCPTABLE_OWNER_PID {
     fn get_table(&self) -> Table {
         let rows = (0..self.dwNumEntries)
             .map(|i| {
@@ -81,7 +97,7 @@ pub fn get_socket_info<T>(protocol: Protocol) -> Table
     where T: TableStructure
 {
     let buffer = match protocol {
-        Protocol::Tcp => get_tcp_buffer(TCP_TABLE_OWNER_MODULE_CONNECTIONS),
+        Protocol::Tcp => get_tcp_buffer(TCP_TABLE_OWNER_PID_ALL),
         Protocol::Udp => get_udp_buffer()
     };
 

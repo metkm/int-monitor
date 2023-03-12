@@ -4,25 +4,16 @@
 mod network;
 
 use tauri::{Window, WindowEvent};
-use windows::Win32::NetworkManagement::IpHelper::MIB_TCPTABLE_OWNER_MODULE;
+use windows::Win32::NetworkManagement::IpHelper::MIB_TCPTABLE_OWNER_PID;
 
 #[tauri::command]
 fn init_process(_window: Window) {
     std::thread::spawn(move || {
-        let socket_info = network::table::get_socket_info::<MIB_TCPTABLE_OWNER_MODULE>(network::table::Protocol::Tcp);
+        let socket_info = network::table::get_socket_info::<MIB_TCPTABLE_OWNER_PID>(network::table::Protocol::Tcp);
         
         for row in socket_info.rows {
-            println!("{:?}", row);
+            println!("pid: {} - {:?}", row.owning_pid, row.owning_module_info);
         }
-
-        // loop {
-        //     let table_buffer =
-        //         network::get_table_buffer!(GetExtendedTcpTable, AF_INET, TCP_TABLE_OWNER_PID_ALL);
-        //     let table = TcpTable::new(&table_buffer);
-
-        //     window.emit("table-update", Payload { table }).unwrap();
-        //     std::thread::sleep(std::time::Duration::from_secs(4));
-        // }
     });
 }
 
