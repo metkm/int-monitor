@@ -1,108 +1,116 @@
-use std::net::{IpAddr, Ipv4Addr};
+// use windows::Win32::NetworkManagement::IpHelper::{
+//     MIB_TCPROW_LH, MIB_TCPROW_LH_0, MIB_TCPROW_OWNER_MODULE, MIB_TCPROW_OWNER_PID,
+//     MIB_TCPTABLE_OWNER_MODULE, MIB_TCPTABLE_OWNER_PID, TCP_TABLE_OWNER_PID_ALL,
+// };
 
-use windows::Win32::NetworkManagement::IpHelper::{MIB_TCPTABLE_OWNER_MODULE, MIB_TCPROW_OWNER_MODULE, MIB_TCPROW_OWNER_PID, TCP_TABLE_OWNER_PID_ALL, MIB_TCPTABLE_OWNER_PID};
+// use super::{
+//     bandwidth::{get_connection_stats},
+//     tcp::get_tcp_buffer,
+//     udp::get_udp_buffer,
+// };
 
-use super::{tcp::get_tcp_buffer, udp::get_udp_buffer};
+// pub enum Protocol {
+//     Tcp,
+//     Udp,
+// }
 
-pub enum Protocol {
-    Tcp,
-    Udp
-}
+// #[derive(Debug)]
+// pub struct Table {
+//     pub row_count: u32,
+//     pub rows: Vec<TableRow>,
+// }
 
-#[derive(Debug)]
-pub struct Table {
-    pub row_count: u32,
-    pub rows: Vec<TableRow>
-}
+// pub trait TableStructure {
+//     fn get_table(&self) -> Table;
+// }
 
-pub trait TableStructure {
-    fn get_table(&self) -> Table;
-}
+// impl TableStructure for MIB_TCPTABLE_OWNER_MODULE {
+//     fn get_table(&self) -> Table {
+//         let rows = (0..self.dwNumEntries)
+//             .map(|i| {
+//                 let row = unsafe { &*(self.table.as_ptr().add(i as usize)) };
 
-impl TableStructure for MIB_TCPTABLE_OWNER_MODULE {
-    fn get_table(&self) -> Table {
-        let rows = (0..self.dwNumEntries)
-            .map(|i| {
-                let owner = unsafe { &*(self.table.as_ptr().add(i as usize)) };
-                TableRow::from(owner)
-            })
-            .collect::<Vec<TableRow>>();
+// let x = MIB_TCPROW_LH {
+//     Anonymous: MIB_TCPROW_LH_0 {
+//         dwState: row.dwState,
+//     },
+//     dwLocalAddr: row.dwLocalAddr,
+//     dwLocalPort: row.dwLocalPort,
+//     dwRemoteAddr: row.dwRemoteAddr,
+//     dwRemotePort: row.dwRemotePort,
+// };
+//                 get_connection_stats(&x);
 
-        Table {
-            row_count: self.dwNumEntries,
-            rows
-        }
-    }
-}
+//                 TableRow::from(row)
+//             })
+//             .collect::<Vec<TableRow>>();
 
-impl TableStructure for MIB_TCPTABLE_OWNER_PID {
-    fn get_table(&self) -> Table {
-        let rows = (0..self.dwNumEntries)
-            .map(|i| {
-                let owner = unsafe { &*(self.table.as_ptr().add(i as usize)) };
-                TableRow::from(owner)
-            })
-            .collect::<Vec<TableRow>>();
+//         Table {
+//             row_count: self.dwNumEntries,
+//             rows,
+//         }
+//     }
+// }
 
-        Table {
-            row_count: self.dwNumEntries,
-            rows
-        }
-    }
-}
+// impl TableStructure for MIB_TCPTABLE_OWNER_PID {
+//     fn get_table(&self) -> Table {
+//         let rows = (0..self.dwNumEntries)
+//             .map(|i| {
+//                 let row = unsafe { &*(self.table.as_ptr().add(i as usize)) };
 
-#[derive(Debug)]
-pub struct TableRow {
-    pub state: u32,
-    pub local_addr: IpAddr,
-    pub local_port: u16,
-    pub remote_addr: IpAddr,
-    pub remote_port: u16,
-    pub owning_pid: u32,
-    pub create_timestamp: Option<i64>,
-    pub owning_module_info: Option<[u64; 16]>
-}
+// let x = MIB_TCPROW_LH {
+//     Anonymous: MIB_TCPROW_LH_0 {
+//         dwState: row.dwState,
+//     },
+//     dwLocalAddr: row.dwLocalAddr,
+//     dwLocalPort: row.dwLocalPort,
+//     dwRemoteAddr: row.dwRemoteAddr,
+//     dwRemotePort: row.dwRemotePort,
+// };
 
-impl From<&MIB_TCPROW_OWNER_MODULE> for TableRow {
-    fn from(value: &MIB_TCPROW_OWNER_MODULE) -> Self {
-        Self {
-            state: value.dwState,
-            local_addr: IpAddr::V4(Ipv4Addr::from(u32::from_be(value.dwLocalAddr))),
-            local_port: u16::from_be(value.dwLocalPort as u16),
-            remote_addr: IpAddr::V4(Ipv4Addr::from(u32::from_be(value.dwRemoteAddr))),
-            remote_port: u16::from_be(value.dwRemotePort as u16),
-            owning_pid: value.dwOwningPid,
-            create_timestamp: Some(value.liCreateTimestamp),
-            owning_module_info: Some(value.OwningModuleInfo)
-        }
-    }
-}
+//                 if let Some(stats) = get_connection_stats(&x) {
+//                     if row.dwOwningPid == 8248 {
+//                         println!(
+//                             "{:?} - local addr {:?} remote addr {:?} pid: {:?}",
+//                             stats.inbound / 1000,
+//                             row.dwLocalAddr,
+//                             row.dwRemoteAddr,
+//                             row.dwOwningPid
+//                         )
+//                     }
+//                 }
 
-impl From<&MIB_TCPROW_OWNER_PID> for TableRow {
-    fn from(value: &MIB_TCPROW_OWNER_PID) -> Self {
-        Self {
-            state: value.dwState,
-            local_addr: IpAddr::V4(Ipv4Addr::from(u32::from_be(value.dwLocalAddr))),
-            local_port: u16::from_be(value.dwLocalPort as u16),
-            remote_addr: IpAddr::V4(Ipv4Addr::from(u32::from_be(value.dwRemoteAddr))),
-            remote_port: u16::from_be(value.dwRemotePort as u16),
-            owning_pid: value.dwOwningPid,
-            create_timestamp: None,
-            owning_module_info: None
-        }
-    }
-}
+//                 TableRow::from(row)
+//             })
+//             .collect::<Vec<TableRow>>();
 
-pub fn get_socket_info<T>(protocol: Protocol) -> Table
-    where T: TableStructure
-{
-    let buffer = match protocol {
-        Protocol::Tcp => get_tcp_buffer(TCP_TABLE_OWNER_PID_ALL),
-        Protocol::Udp => get_udp_buffer()
-    };
+//         Table {
+//             row_count: self.dwNumEntries,
+//             rows,
+//         }
+//     }
+// }
 
-    let owner = unsafe { &*(buffer.as_ptr() as *const T) };
-    let table = owner.get_table();
+// pub enum Protocol {
+//     Tcp,
+//     Udp
+// }
 
-    table
-}
+// // pub trait TableStructure {
+// //     fn get_table(&self) -> Table;
+// // }
+
+// pub fn get_socket_info<T>(protocol: Protocol) -> Table
+// where
+//     T: TableStructure,
+// {
+//     // let buffer = match protocol {
+//     //     Protocol::Tcp => get_tcp_buffer(TCP_TABLE_OWNER_PID_ALL),
+//     //     Protocol::Udp => get_udp_buffer(),
+//     // };
+
+//     // let owner = unsafe { &*(buffer.as_ptr() as *const T) };
+//     // let table = owner.get_table();
+
+//     // table
+// }
