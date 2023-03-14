@@ -23,29 +23,33 @@ const listener = ref<UnlistenFn | null>(null);
 const table = ref<Table | null>();
 
 onMounted(async () => {
-  listener.value = await listen("table-update", (event) => {
-    let payload = event.payload as Table;
-
-    payload.rows.sort((a, b) => {
-      if (a.bandwidth && !b.bandwidth) {
-        // b is empty so it should come after
-        return -1;
-      }
-      if (!a.bandwidth && b.bandwidth) {
-        // a is empty so it should come first
-        return 1;
-      }
-
-      if (a.bandwidth && b.bandwidth) {
-        return b.bandwidth.inbound - a.bandwidth.inbound
-      }
-
-      return 0;
-    })
-
-    console.log(payload);
+  await listen<Table>("table-update", ({ payload }) => {
     table.value = payload;
-  })
+  });
+
+  // listener.value = await listen("table-update", (event) => {
+  //   // let payload = event.payload as Table;
+
+  //   // payload.rows.sort((a, b) => {
+  //   //   if (a.bandwidth && !b.bandwidth) {
+  //   //     // b is empty so it should come after
+  //   //     return -1;
+  //   //   }
+  //   //   if (!a.bandwidth && b.bandwidth) {
+  //   //     // a is empty so it should come first
+  //   //     return 1;
+  //   //   }
+
+  //   //   if (a.bandwidth && b.bandwidth) {
+  //   //     return b.bandwidth.inbound - a.bandwidth.inbound
+  //   //   }
+
+  //   //   return 0;
+  //   // })
+
+  //   // console.log(payload);
+  //   // table.value = payload;
+  // })
 
   invoke("init_process");
 })
@@ -78,7 +82,7 @@ onUnmounted(() => listener.value?.())
 
           <template v-if="row.bandwidth">
             <td class="p-2">{{ row.bandwidth.inbound.toLocaleString() }}</td>
-            <td class="p-2">{{ row.bandwidth?.outbound.toLocaleString() }}</td>
+            <td class="p-2">{{ row.bandwidth.outbound.toLocaleString() }}</td>
           </template>
         </tr>
       </tbody>
