@@ -7,13 +7,14 @@ use tauri::{Window, WindowEvent};
 use windows::Win32::NetworkManagement::IpHelper::{MIB_TCPTABLE_OWNER_PID, TCP_TABLE_OWNER_PID_ALL};
 
 #[tauri::command]
-fn init_process(_window: Window) {
+fn init_process(window: Window) {
     std::thread::spawn(move || {
-        // loop {
-            network::get_socket_info::<MIB_TCPTABLE_OWNER_PID>(network::models::Protocol::Tcp, TCP_TABLE_OWNER_PID_ALL);
+        loop {
+            let socket_info = network::get_socket_info::<MIB_TCPTABLE_OWNER_PID>(network::models::Protocol::Tcp, TCP_TABLE_OWNER_PID_ALL);
+            window.emit("table-update", socket_info).ok();
+
             std::thread::sleep(std::time::Duration::from_secs(1));
-            println!("sleeping");
-        // }
+        }
     });
 }
 

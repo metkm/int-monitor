@@ -7,13 +7,13 @@ pub trait TableStructure {
     fn get_row_lh(&self, i: u32) -> MIB_TCPROW_LH;
 }
 
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize)]
 pub enum Protocol {
     Tcp,
     Udp
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct Table {
     pub row_count: u32,
     pub rows: Vec<TableRow>
